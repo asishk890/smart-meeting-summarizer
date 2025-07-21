@@ -123,6 +123,10 @@ export const apiResponseSchema = z.object({
   timestamp: z.string(),
 });
 
+
+// THIS IS THE FIX: We are now exporting the TypeScript types
+// that can be inferred from the Zod schemas.
+
 // Type exports
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;

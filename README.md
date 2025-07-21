@@ -107,137 +107,88 @@ axisFormat %b %d
     Testing and Refinement        :todo, P4, after P4, 2d
     Deployment                    :todo, P4, after P4, 2d
 
-/smart-meeting-summarizer
-
-smart-meeting-summarizer/
-├── .env.local                  # Environment variables (API keys)
-├── .eslintrc.json              # ESLint configuration
-├── .gitignore
-├── components/                 # Reusable React components
-│   ├── ui/                     # Simple, base UI elements
-│   │   ├── button.tsx
-│   │   ├── card.tsx
-│   │   └── input.tsx
-│   ├── DashboardClient.tsx     # Client component for dashboard interactivity
-│   ├── Footer.tsx
-│   └── Header.tsx
-├── data/
-│   └── db.json                 # Mock database file
-├── lib/                        # Helper functions, utilities, and types
-│   ├── auth.ts                 # Auth functions (JWT sign/verify)
-│   ├── data-access.ts          # Functions to read/write from db.json
-│   └── types.ts                # TypeScript type definitions
-├── middleware.ts               # Next.js middleware for authentication
-├── next.config.mjs             # Next.js configuration
-├── package.json
-├── postcss.config.mjs          # PostCSS configuration (for Tailwind CSS v4)
-├── public/                     # Static assets (images, fonts)
-│   └── favicon.ico
-├── app/                        # App Router directory
-│   ├── (auth)/                 # Route group for authentication pages
-│   │   ├── login/
-│   │   │   └── page.tsx        # Login page UI
-│   │   └── layout.tsx          # Shared layout for auth pages
-│   ├── (main)/                 # Route group for main site pages
-│   │   ├── dashboard/
-│   │   │   ├── layout.tsx      # Dashboard specific layout
-│   │   │   └── page.tsx        # Dashboard page UI
-│   │   └── layout.tsx          # Main site layout (with Header/Footer)
-│   ├── api/                    # API routes
-│   │   ├── auth/
-│   │   │   ├── login/
-│   │   │   │   └── route.ts    # POST /api/auth/login
-│   │   │   └── me/
-│   │   │       └── route.ts    # GET /api/auth/me (check session)
-│   │   └── summarize/
-│   │       └── route.ts        # POST /api/summarize
-│   ├── favicon.ico
-│   ├── globals.css             # Global styles
-│   ├── layout.tsx              # Root layout
-│   └── page.tsx                # Landing page UI
-└── tailwind.config.ts          # Tailwind CSS configuration
 
 ##################################################################################
 
 
 for test
 
-smart-meeting-summarizer/
-├── .env.local                      # Environment variables
-├── .gitignore                      # Git ignore file
-├── next.config.js                  # Next.js configuration
-├── package.json                    # Dependencies
-├── tsconfig.json                   # TypeScript configuration
-├── tailwind.config.js              # Tailwind CSS configuration
-├── postcss.config.js               # PostCSS configuration
-├── README.md                       # Project documentation
-├── public/                         # Static assets
-│   ├── favicon.ico
-│   └── logo.png
-├── src/                           # Source code
-│   ├── app/                       # Next.js App Router
-│   │   ├── globals.css           # Global styles
-│   │   ├── layout.tsx            # Root layout
-│   │   ├── page.tsx              # Home page
-│   │   ├── login/
-│   │   │   └── page.tsx          # Login page
-│   │   ├── register/
-│   │   │   └── page.tsx          # Register page
-│   │   ├── dashboard/
-│   │   │   └── page.tsx          # Dashboard page
-│   │   └── api/                  # API routes
-│   │       ├── auth/
-│   │       │   ├── login/
-│   │       │   │   └── route.ts
-│   │       │   └── register/
-│   │       │       └── route.ts
-│   │       ├── meetings/
-│   │       │   ├── route.ts      # GET, POST meetings
-│   │       │   └── [id]/
-│   │       │       └── route.ts  # GET, PUT, DELETE specific meeting
-│   │       └── ai/
-│   │           └── summarize/
-│   │               └── route.ts  # AI summarization endpoint
-│   ├── components/               # Reusable components
-│   │   ├── ui/                  # Base UI components
-│   │   │   ├── button.tsx
-│   │   │   ├── input.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── modal.tsx
-│   │   │   └── loading.tsx
-│   │   ├── layout/              # Layout components
-│   │   │   ├── header.tsx
-│   │   │   ├── sidebar.tsx
-│   │   │   └── footer.tsx
-│   │   ├── auth/                # Authentication components
-│   │   │   ├── login-form.tsx
-│   │   │   ├── register-form.tsx
-│   │   │   └── protected-route.tsx
-│   │   └── meetings/            # Meeting-specific components
-│   │       ├── meeting-list.tsx
-│   │       ├── meeting-card.tsx
-│   │       ├── upload-form.tsx
-│   │       └── summary-display.tsx
-│   ├── lib/                     # Utility libraries
-│   │   ├── auth.ts             # Authentication utilities
-│   │   ├── api.ts              # API client
-│   │   ├── ai.ts               # AI integration utilities
-│   │   ├── mock-server.ts      # Mock server utilities
-│   │   ├── utils.ts            # General utilities
-│   │   └── validations.ts      # Zod validation schemas
-│   ├── types/                   # TypeScript type definitions
-│   │   ├── auth.ts             # Auth types
-│   │   ├── meeting.ts          # Meeting types
-│   │   └── api.ts              # API response types
-│   ├── hooks/                   # Custom React hooks
-│   │   ├── use-auth.ts         # Authentication hook
-│   │   ├── use-meetings.ts     # Meetings data hook
-│   │   └── use-ai.ts           # AI integration hook
-│   ├── context/                 # React contexts
-│   │   └── auth-context.tsx    # Authentication context
-│   └── data/                    # Mock data files
-│       ├── users.json          # Mock user data
-│       └── meetings.json       # Mock meeting data
+    smart-meeting-summarizer/
+    ├── .env.local                      # Environment variables
+    ├── .gitignore                      # Git ignore file
+    ├── next.config.js                  # Next.js configuration
+    ├── package.json                    # Dependencies
+    ├── tsconfig.json                   # TypeScript configuration
+    ├── tailwind.config.js              # Tailwind CSS configuration
+    ├── postcss.config.js               # PostCSS configuration
+    ├── README.md                       # Project documentation
+    ├── public/                         # Static assets
+    │   ├── favicon.ico
+    │   └── logo.png
+    ├── src/                           # Source code
+    │   ├── app/                       # Next.js App Router
+    │   │   ├── globals.css           # Global styles
+    │   │   ├── layout.tsx            # Root layout
+    │   │   ├── page.tsx              # Home page
+    │   │   ├── login/
+    │   │   │   └── page.tsx          # Login page
+    │   │   ├── register/
+    │   │   │   └── page.tsx          # Register page
+    │   │   ├── dashboard/
+    │   │   │   └── page.tsx          # Dashboard page
+    │   │   └── api/                  # API routes
+    │   │       ├── auth/
+    │   │       │   ├── login/
+    │   │       │   │   └── route.ts
+    │   │       │   └── register/
+    │   │       │       └── route.ts
+    │   │       ├── meetings/
+    │   │       │   ├── route.ts      # GET, POST meetings
+    │   │       │   └── [id]/
+    │   │       │       └── route.ts  # GET, PUT, DELETE specific meeting
+    │   │       └── ai/
+    │   │           └── summarize/
+    │   │               └── route.ts  # AI summarization endpoint
+    │   ├── components/               # Reusable components
+    │   │   ├── ui/                  # Base UI components
+    │   │   │   ├── button.tsx
+    │   │   │   ├── input.tsx
+    │   │   │   ├── card.tsx
+    │   │   │   ├── modal.tsx
+    │   │   │   └── loading.tsx
+    │   │   ├── layout/              # Layout components
+    │   │   │   ├── header.tsx
+    │   │   │   ├── sidebar.tsx
+    │   │   │   └── footer.tsx
+    │   │   ├── auth/                # Authentication components
+    │   │   │   ├── login-form.tsx
+    │   │   │   ├── register-form.tsx
+    │   │   │   └── protected-route.tsx
+    │   │   └── meetings/            # Meeting-specific components
+    │   │       ├── meeting-list.tsx
+    │   │       ├── meeting-card.tsx
+    │   │       ├── upload-form.tsx
+    │   │       └── summary-display.tsx
+    │   ├── lib/                     # Utility libraries
+    │   │   ├── auth.ts             # Authentication utilities
+    │   │   ├── api.ts              # API client
+    │   │   ├── ai.ts               # AI integration utilities
+    │   │   ├── mock-server.ts      # Mock server utilities
+    │   │   ├── utils.ts            # General utilities
+    │   │   └── validations.ts      # Zod validation schemas
+    │   ├── types/                   # TypeScript type definitions
+    │   │   ├── auth.ts             # Auth types
+    │   │   ├── meeting.ts          # Meeting types
+    │   │   └── api.ts              # API response types
+    │   ├── hooks/                   # Custom React hooks
+    │   │   ├── use-auth.ts         # Authentication hook
+    │   │   ├── use-meetings.ts     # Meetings data hook
+    │   │   └── use-ai.ts           # AI integration hook
+    │   ├── context/                 # React contexts
+    │   │   └── auth-context.tsx    # Authentication context
+    │   └── data/                    # Mock data files
+    │       ├── users.json          # Mock user data
+    │       └── meetings.json       # Mock meeting data
 
 Check This Before:-
 
