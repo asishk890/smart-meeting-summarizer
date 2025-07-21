@@ -124,6 +124,11 @@ export const apiResponseSchema = z.object({
 });
 
 
+// === THIS IS THE FIX FOR ERROR #1 ===
+// We are now explicitly creating and exporting the TypeScript types.
+export type LoginSchema = z.infer<typeof loginSchema>;
+export type RegisterSchema = z.infer<typeof registerSchema>;
+
 // THIS IS THE FIX: We are now exporting the TypeScript types
 // that can be inferred from the Zod schemas.
 

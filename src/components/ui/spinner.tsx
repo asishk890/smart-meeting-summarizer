@@ -2,7 +2,6 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { Loader } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-// This defines the possible styles (just size) for the spinner.
 const spinnerVariants = cva('animate-spin text-primary', {
   variants: {
     size: {
@@ -16,12 +15,18 @@ const spinnerVariants = cva('animate-spin text-primary', {
   },
 })
 
-// ========= THIS IS THE CRITICAL PART FOR THE FIX =========
-// This interface gets the variants from `spinnerVariants`. This is what
-// makes `size` a valid prop on the Spinner component.
-type SpinnerProps = VariantProps<typeof spinnerVariants>
-// ========================================================
+// ========= FIX #1: Add `className` to the props interface =============
+interface SpinnerProps extends VariantProps<typeof spinnerVariants> {
+  className?: string;
+}
+// ===================================================================
 
-export const Spinner = ({ size }: SpinnerProps) => {
-  return <Loader className={cn(spinnerVariants({ size }))} />
+export const Spinner = ({ size, className }: SpinnerProps) => {
+  return (
+    // ===== FIX #2: Pass the className into the `cn` function =====
+    // This will merge the base spinner styles with any custom classes
+    // you provide, like "mr-2".
+    <Loader className={cn(spinnerVariants({ size, className }))} />
+    // ===========================================================
+  )
 }

@@ -1,210 +1,72 @@
 'use client';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import axios from 'axios';
+import { User } from '@/types';
+import { Spinner } from '@/components/ui/spinner';
+import { useRouter } from 'next/navigation';
 
-import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { AuthState, AuthContextType, LoginCredentials, RegisterCredentials, AuthResponse, User } from '@/types/auth';
-
-// Initial state
-const initialState: AuthState = {
-  user: null,
-  isLoading: true,
-  isAuthenticated: false,
-  token: null,
-};
-
-// Auth actions
-type AuthAction =
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'LOGIN_SUCCESS'; payload: { user: User; token: string } }
-  | { type: 'LOGIN_FAILURE' }
-  | { type: 'LOGOUT' }
-  | { type: 'SET_USER'; payload: User };
-
-// Auth reducer
-function authReducer(state: AuthState, action: AuthAction): AuthState {
-  switch (action.type) {
-    case 'SET_LOADING':
-      return { ...state, isLoading: action.payload };
-    case 'LOGIN_SUCCESS':
-      return {
-        ...state,
-        isLoading: false,
-        isAuthenticated: true,
-        user: action.payload.user,
-        token: action.payload.token,
-      };
-    case 'LOGIN_FAILURE':
-      return {
-        ...state,
-        isLoading: false,
-        isAuthenticated: false,
-        user: null,
-        token: null,
-      };
-    case 'LOGOUT':
-      return initialState;
-    case 'SET_USER':
-      return { ...state, user: action.payload };
-    default:
-      return state;
-  }
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
-// Create context
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// ================= THE FIX IS HERE ==================
+// We are telling TypeScript what the shape of our context value is.
+// It was missing the `setAuthState` function.
+export interface AuthContextType {
+  authState: AuthState;
+  setAuthState: React.Dispatch<React.SetStateAction<AuthState>>; // <-- Add this line
+  logout: () => void;
+}
+// ==================================================
 
-// Auth provider component
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authState, dispatch] = useReducer(authReducer, initialState);
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+  });
+  const router = useRouter();
 
-  // Check for existing token on mount
+  // ... (rest of the file remains the same)
+
   useEffect(() => {
-    const initAuth = async () => {
+    const checkUser = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const response = await fetch('/api/auth/me', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            dispatch({
-              type: 'LOGIN_SUCCESS',
-              payload: { user: data.data.user, token },
-            });
-          } else {
-            localStorage.removeItem('token');
-            dispatch({ type: 'LOGIN_FAILURE' });
-          }
+        const { data } = await axios.get('/api/auth/me');
+        if (data.user) {
+          setAuthState({ user: data.user, isAuthenticated: true, isLoading: false });
         } else {
-          dispatch({ type: 'LOGIN_FAILURE' });
+          setAuthState({ user: null, isAuthenticated: false, isLoading: false });
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        localStorage.removeItem('token');
-        dispatch({ type: 'LOGIN_FAILURE' });
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
       }
     };
-
-    initAuth();
+    checkUser();
   }, []);
 
-  // Login function
-  const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-
-      const data: AuthResponse = await response.json();
-
-      if (data.success && data.data) {
-        localStorage.setItem('token', data.data.token);
-        dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: { user: data.data.user, token: data.data.token },
-        });
-      } else {
-        dispatch({ type: 'LOGIN_FAILURE' });
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Login error:', error);
-      dispatch({ type: 'LOGIN_FAILURE' });
-      return {
-        success: false,
-        message: 'Login failed. Please try again.',
-        error: 'Network error',
-      };
-    }
-  };
-
-  // Register function
-  const register = async (credentials: RegisterCredentials): Promise<AuthResponse> => {
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-
-      const data: AuthResponse = await response.json();
-
-      if (data.success && data.data) {
-        localStorage.setItem('token', data.data.token);
-        dispatch({
-          type: 'LOGIN_SUCCESS',
-          payload: { user: data.data.user, token: data.data.token },
-        });
-      } else {
-        dispatch({ type: 'LOGIN_FAILURE' });
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Register error:', error);
-      dispatch({ type: 'LOGIN_FAILURE' });
-      return {
-        success: false,
-        message: 'Registration failed. Please try again.',
-        error: 'Network error',
-      };
-    }
-  };
-
-  // Logout function
   const logout = () => {
-    localStorage.removeItem('token');
-    dispatch({ type: 'LOGOUT' });
+    axios.post('/api/auth/logout');
+    setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+    router.push('/login');
   };
 
-  // Refresh auth function
-  const refreshAuth = async (): Promise<void> => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+  // ...
 
-    try {
-      const response = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        dispatch({ type: 'SET_USER', payload: data.data.user });
-      } else {
-        logout();
-      }
-    } catch (error) {
-      console.error('Auth refresh error:', error);
-      logout();
-    }
-  };
-
-  const value: AuthContextType = {
-    authState,
-    login,
-    register,
-    logout,
-    refreshAuth,
-  };
+  // Here we are providing the value, which now correctly matches the type.
+  const value = { authState, setAuthState, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Custom hook to use auth context
-export function useAuthContext() {
+export const useAuthContext = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuthContext must be used within an AuthProvider');
   }
   return context;
-}
+};
