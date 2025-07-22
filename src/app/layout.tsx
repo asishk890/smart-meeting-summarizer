@@ -1,17 +1,15 @@
+// src/app/layout.tsx
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Toaster } from '@/components/ui/sonner'
 import { Providers } from './providers'
+import { ClientOnly } from '@/components/ui/client-only' // Import the wrapper
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Smart Meeting Summarizer',
-  description: 'AI-powered meeting summarizer with Next.js 15',
-  icons: {
-    icon: '/favicon.ico',
-  },
+  //... your metadata
 }
 
 export default function RootLayout({
@@ -20,12 +18,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    // This is the key. It's in the right place.
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <Providers>
           {children}
-          <Toaster position="top-center" richColors />
+          <ClientOnly>
+            <Toaster position="top-center" richColors />
+          </ClientOnly>
         </Providers>
       </body>
     </html>

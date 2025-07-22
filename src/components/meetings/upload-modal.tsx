@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Card } from '../ui/card';
 
 interface UploadModalProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUploadSuccess: (newMeeting: any) => void;
   onClose: () => void;
 }
@@ -57,6 +58,7 @@ export function UploadModal({ onUploadSuccess, onClose }: UploadModalProps) {
       }
       onUploadSuccess(result);
       onClose();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message);
     } finally {

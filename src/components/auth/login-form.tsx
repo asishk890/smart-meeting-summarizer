@@ -1,24 +1,31 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import axios from 'axios'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { Mail, Lock } from 'lucide-react' // Import icons
-import { loginSchema, LoginSchema } from '@/lib/validations'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Spinner } from '@/components/ui/spinner'
-import { useAuthContext } from '@/context/auth-context'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+// We don't need axios anymore because our context handles the API call
+// import axios from 'axios';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { Mail, Lock } from 'lucide-react';
+// The schema definition is better placed in the validations file itself.
+import { loginSchema, LoginSchema } from '@/lib/validations'; // Assuming LoginSchema is exported from validations
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+// --- This is the key change ---
+// We get the `login` function, NOT `setAuthState`
+import { useAuthContext } from '@/context/auth-context';
 
-export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-  const { setAuthState } = useAuthContext();
+export default function LoginForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  // The router isn't even needed here anymore, our auth hooks will handle redirection!
+  // const router = useRouter(); 
+  
+  // Get the login function from our context
+  const { login } = useAuthContext();
 
   const {
     register,
@@ -28,31 +35,41 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
+  // This function becomes much simpler
   const onSubmit = async (data: LoginSchema) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await axios.post('/api/auth/login', data)
-      toast.success(response.data.message)
-      setAuthState({ user: response.data.user, isAuthenticated: true, isLoading: false });
-      router.push('/dashboard')
+      // Call the login function from the context, which does everything.
+      await login(data);
+      
+      toast.success('Login successful! Redirecting...');
+      
+      // We don't need router.push('/dashboard') here.
+      // Why? Because when `login()` updates the auth state, our `useRedirectIfAuth`
+      // hook in the login page will automatically detect the user is authenticated
+      // and redirect them to the dashboard. The logic is now centralized and automatic.
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Login failed. Please try again.'
-      toast.error(errorMessage)
+      // The login function in the context will throw an error on failure
+      const errorMessage = error.message || 'Login failed. Please try again.';
+      toast.error(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   };
-  
-  // Fake handler for social logins to show functionality
+
   const handleSocialLogin = (provider: string) => {
-    toast.info(`Logging in with ${provider}...`)
-  }
+    toast.info(`Logging in with ${provider}...`);
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-sm rounded-lg bg-card p-8 shadow-md">
+        <div className="space-y-2 text-center mb-6">
+            <h1 className="text-2xl font-bold">Welcome Back</h1>
+            <p className="text-muted-foreground">Enter your credentials to access your dashboard</p>
+        </div>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email Input with Icon */}
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <div className="relative">
@@ -63,64 +80,60 @@ export function LoginForm() {
               placeholder="m@example.com"
               {...register('email')}
               disabled={isLoading}
-              className="pl-10" // Add padding to make space for the icon
+              className="pl-10 bg-background" 
             />
           </div>
-          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+          {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
         </div>
-
-        {/* Password Input with Icon and Forgot Password Link */}
         <div className="space-y-2">
-            <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link href="#" className="text-sm font-medium text-primary hover:underline underline-offset-4">
-                    Forgot password?
-                </Link>
-            </div>
-            <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register('password')}
-                  disabled={isLoading}
-                  className="pl-10"
-                />
-            </div>
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link href="#" className="text-sm font-medium text-primary hover:underline underline-offset-4">
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              {...register('password')}
+              disabled={isLoading}
+              className="pl-10 bg-background"
+            />
+          </div>
+          {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>}
         </div>
-
-        {/* Submit Button */}
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading && <Spinner size="sm" className="mr-2" />}
+          {isLoading && <Spinner className="mr-2 h-4 w-4 animate-spin" />}
           Login
         </Button>
       </form>
-
-      {/* "OR CONTINUE WITH" Separator */}
-      <div className="relative">
+      <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
+          <span className="w-full border-t border-muted" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">
+          <span className="bg-card px-2 text-muted-foreground">
             Or continue with
           </span>
         </div>
       </div>
-
-      {/* Social Login Buttons */}
       <div className="grid grid-cols-2 gap-4">
         <Button variant="outline" onClick={() => handleSocialLogin('Google')}>
-          {/* In a real app, you'd use a Google icon here */}
           Google
         </Button>
         <Button variant="outline" onClick={() => handleSocialLogin('GitHub')}>
-          {/* In a real app, you'd use a GitHub icon here */}
           GitHub
         </Button>
       </div>
+      <p className="text-center text-sm text-muted-foreground mt-6">
+        Don not have an account?{' '}
+        <Link href="/register" className="font-semibold text-primary hover:underline underline-offset-4">
+            Sign up
+        </Link>
+      </p>
     </div>
-  )
+  );
 }

@@ -1,5 +1,7 @@
 // Base User object with all properties
 export interface User {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  role: any;
   id: string;
   name: string;
   email: string;

@@ -1,72 +1,139 @@
-'use client';
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
-import { User } from '@/types';
-import { Spinner } from '@/components/ui/spinner';
-import { useRouter } from 'next/navigation';
+// src/context/auth-context.tsx
 
-interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-}
+"use client";
 
-// ================= THE FIX IS HERE ==================
-// We are telling TypeScript what the shape of our context value is.
-// It was missing the `setAuthState` function.
-export interface AuthContextType {
-  authState: AuthState;
-  setAuthState: React.Dispatch<React.SetStateAction<AuthState>>; // <-- Add this line
-  logout: () => void;
-}
-// ==================================================
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  AuthState,
+  AuthContextType,
+  LoginCredentials,
+  RegisterDetails,
+} from "@/types/auth";
+import { useRouter } from "next/navigation";
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create a context with a default undefined value, the provider will supply the real value.
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Initial state for our authentication
+const initialAuthState: AuthState = {
+  isLoading: true,
+  isAuthenticated: false,
+  user: null,
+  token: null,
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-  });
+  const [authState, setAuthState] = useState<AuthState>(initialAuthState);
   const router = useRouter();
 
-  // ... (rest of the file remains the same)
+  // Function to refresh auth state from token (e.g., on page load)
+  const refreshAuth = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setAuthState({
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+        token: null,
+      });
+      return;
+    }
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data } = await axios.get('/api/auth/me');
-        if (data.user) {
-          setAuthState({ user: data.user, isAuthenticated: true, isLoading: false });
-        } else {
-          setAuthState({ user: null, isAuthenticated: false, isLoading: false });
-        }
-      } catch (error) {
-        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
-      }
-    };
-    checkUser();
-  }, []);
-
-  const logout = () => {
-    axios.post('/api/auth/logout');
-    setAuthState({ user: null, isAuthenticated: false, isLoading: false });
-    router.push('/login');
+    // In a real app, you would verify the token with the backend.
+    // Here, we'll decode it (for user info) and assume it's valid.
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1])); // Simple JWT decode
+      setAuthState({
+        isLoading: false,
+        isAuthenticated: true,
+        user: {
+          id: payload.sub,
+          name: payload.name,
+          email: payload.email,
+          createdAt: "",
+          updatedAt: "",
+          isActive: false,
+          role: "user",
+        },
+        token: token,
+      });
+    } catch (error) {
+      console.error("Failed to decode token", error);
+      localStorage.removeItem("authToken");
+      setAuthState({
+        isLoading: false,
+        isAuthenticated: false,
+        user: null,
+        token: null,
+      });
+    }
   };
 
-  // ...
+  useEffect(() => {
+    refreshAuth();
+  }, []);
 
-  // Here we are providing the value, which now correctly matches the type.
-  const value = { authState, setAuthState, logout };
+  const login = async (credentials: LoginCredentials) => {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(credentials),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Login failed");
+    }
+    localStorage.setItem("authToken", data.token);
+    await refreshAuth(); // Refresh state after getting token
+  };
+
+  const register = async (details: RegisterDetails) => {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(details),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || "Registration failed");
+    }
+    // Success! Redirect to login page for the user to log in.
+    router.push("/login");
+  };
+
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    setAuthState({
+      isLoading: false,
+      isAuthenticated: false,
+      user: null,
+      token: null,
+    });
+    router.push("/login");
+  };
+
+  const value: AuthContextType = {
+    authState,
+    login,
+    register,
+    logout,
+    refreshAuth,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export const useAuthContext = (): AuthContextType => {
+// Custom hook to consume the context
+export function useAuthContext() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
+    throw new Error("useAuthContext must be used within an AuthProvider");
   }
   return context;
-};
+}

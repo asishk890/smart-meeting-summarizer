@@ -6,7 +6,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
 }
 
 export interface AuthState {
@@ -48,8 +48,21 @@ export interface TokenPayload {
 
 export interface AuthContextType {
   authState: AuthState;
-  login: (credentials: LoginCredentials) => Promise<AuthResponse>;
-  register: (credentials: RegisterCredentials) => Promise<AuthResponse>;
-  logout: () => void;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (details: RegisterDetails) => Promise<void>; // Also changed to void
+
   refreshAuth: () => Promise<void>;
+  logout: () => void;
+}
+
+// Type for API payloads
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterDetails {
+  name: string;
+  email: string;
+  password: string;
 }

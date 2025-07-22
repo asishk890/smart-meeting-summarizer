@@ -1,12 +1,21 @@
+// src/app/providers.tsx (Example of a likely file)
+
 'use client'
 
 import { ThemeProvider } from 'next-themes'
-import { AuthProvider } from '@/context/auth-context'
+import { AuthProvider } from '@/context/auth-context' // Assuming you have this
+import { type ReactNode } from 'react'
 
-// This component's only job is to hold all your client-side providers.
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    // The ThemeProvider is a very common source of hydration errors.
+    // Using `attribute="class"` and `enableSystem` is the standard setup.
+    <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+    >
       <AuthProvider>
         {children}
       </AuthProvider>

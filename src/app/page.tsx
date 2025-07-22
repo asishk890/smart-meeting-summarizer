@@ -1,55 +1,55 @@
 'use client'
 
 import Link from 'next/link'
-import { useAuth } from '@/hooks/use-auth'
+// --- FIX STEP 1: Import the correct, specialized hook ---
+import { useRedirectIfAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Mic, Brain, FileText, Users, Shield, Zap } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+// The router is handled automatically by the hook, but we keep the import in case you need it for other links.
+import { useRouter } from 'next/navigation' 
 import { useEffect } from 'react'
 import { Spinner } from '@/components/ui/spinner'
 
+// Note: To make the text gradient work, you'll need to add a utility class.
+// In globals.css, add:
+// .text-gradient {
+//   background-image: linear-gradient(to right, #3b82f6, #8b5cf6);
+//   -webkit-background-clip: text;
+//   -webkit-text-fill-color: transparent;
+// }
+// For the glow effect:
+// .shadow-glow {
+//  box-shadow: 0 0 20px 0px rgba(99, 102, 241, 0.5);
+// }
+
 export default function HomePage() {
-  // =================================================================
-  // =====> THE ROOT CAUSE AND FIX IS HERE <=====
-  //
-  // WRONG: const { authState } = useAuth()
-  // This is wrong because the `useAuth` hook returns a flat object.
-  // It does NOT return an object nested under `authState`.
-  //
-  // CORRECT: Destructure the properties you need directly.
-  const { isAuthenticated, isLoading } = useAuth()
-  // =================================================================
-
-  const router = useRouter()
-
-  useEffect(() => {
-    // Now we use the `isAuthenticated` variable directly.
-    if (isAuthenticated) {
-      router.push('/dashboard')
-    }
-  }, [isAuthenticated, router])
-
-  // Now we use the `isLoading` variable directly.
+  // --- FIX STEP 2: Call the correct hook. It requires no arguments. ---
+  // It will handle redirecting the user if they are already authenticated.
+  const { isLoading, isAuthenticated } = useRedirectIfAuth();
+  
+  // No router logic is needed here anymore, as the hook handles it internally!
+  // The useRedirectIfAuth hook will automatically push to '/dashboard' if isAuthenticated becomes true.
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        {/*
-          This line will no longer show an error once the `useAuth`
-          hook usage is corrected above. TypeScript will now
-          correctly recognize the props for the Spinner component.
-        */}
-        <Spinner size="lg" />
+        <Spinner className="h-10 w-10 text-primary" />
       </div>
-    )
+    );
   }
 
+  // If the user is authenticated, the hook will have already initiated a redirect,
+  // and this component will unmount shortly. You can optionally render null.
+  if (isAuthenticated) {
+      return null; 
+  }
+  
+  // Only non-authenticated users will see the main page content.
   return (
-    <div className="min-h-screen bg-background">
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-50/20 via-transparent to-purple-50/20 -z-10" />
-
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-background/50 border-b">
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-background/50 border-b border-white/10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -58,10 +58,6 @@ export default function HomePage() {
             <h1 className="text-xl font-bold text-gradient">SmartSummarizer</h1>
           </Link>
           <div className="flex items-center space-x-2 sm:space-x-4">
-            {/*
-              This line will also be fixed. When the component's main type
-              inference is correct, TypeScript will recognize the `variant` prop.
-            */}
             <Button asChild variant="ghost">
               <Link href="/login">Login</Link>
             </Button>
@@ -75,11 +71,9 @@ export default function HomePage() {
       <main>
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-20 text-center">
-          <div className="animate-float mx-auto mb-8 w-fit">
             <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow">
               <Brain className="w-12 h-12 text-white" />
             </div>
-          </div>
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tighter">
             Transform Meetings with <span className="text-gradient">AI Summaries</span>
           </h1>
@@ -97,7 +91,7 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section className="py-24 bg-secondary">
+        <section className="py-24 bg-card/50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Powerful Features, Simple Workflow</h2>
@@ -114,7 +108,7 @@ export default function HomePage() {
                 { icon: Shield, title: 'Secure & Private', text: 'Your data is encrypted and securely stored.', color: 'from-red-500 to-red-600' },
                 { icon: Zap, title: 'Lightning Fast', text: 'Process meetings in minutes, not hours.', color: 'from-indigo-500 to-indigo-600' },
               ].map(feature => (
-                <Card key={feature.title} className="p-6 text-center transform hover:-translate-y-2 transition-transform duration-300">
+                <Card key={feature.title} className="p-6 text-center transform hover:-translate-y-2 transition-transform duration-300 bg-card">
                   <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mx-auto mb-6`}>
                     <feature.icon className="w-8 h-8 text-white" />
                   </div>
@@ -128,11 +122,11 @@ export default function HomePage() {
 
         {/* CTA Section */}
         <section className="container mx-auto px-4 py-24">
-          <Card className="p-12 text-center bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+          <Card className="p-12 text-center bg-gradient-to-br from-card to-card/50 border border-primary/20 text-white">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Ready to Make Your Meetings Smarter?
             </h2>
-            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join thousands of productive teams who are saving time and effort with AI.
             </p>
             <Button asChild size="lg" className="bg-white text-gray-900 hover:bg-gray-200 text-lg px-12 py-6">
@@ -143,7 +137,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t">
+      <footer className="border-t border-white/10">
         <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
           <p>© {new Date().getFullYear()} SmartSummarizer. All rights reserved.</p>
         </div>

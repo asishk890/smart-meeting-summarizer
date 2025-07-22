@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "cb4572a8-9d87-4a62-af04-86564483d964",
+    "name": "Asish Dhall",
+    "email": "admin@example.com",
+    "password": "$2a$10$GzJ8cypf0YamNqINgBjMR.tC1iWxgETUsyetvolSGQRuiCiySV4sq",
+    "role": "user",
+    "createdAt": "2025-07-22T12:09:36.050Z"
+  }
+]

@@ -16,7 +16,8 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
-  webpack: (config, { isServer }) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  webpack: (config: { resolve: { fallback: any; }; }, { isServer }: any) => {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,

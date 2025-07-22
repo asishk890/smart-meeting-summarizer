@@ -1,34 +1,25 @@
+"use client"; // <-- STEP 1: Add this directive
+
 import Link from "next/link";
-import { LoginForm } from "@/components/auth/login-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import LoginForm from "@/components/auth/login-form";
+import { useRedirectIfAuth } from "@/hooks/use-auth";
+import { Spinner } from "@/components/ui/spinner"; // Import a spinner for loading
 
 export default function LoginPage() {
-  return (
-    <Card className="w-full max-w-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
-        <CardDescription>
-          Enter your email below to log in to your account.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <LoginForm />
-        <p className="mt-6 text-center text-sm">
-          Don not have an account?{" "}
-          <Link
-            href="/register"
-            className="font-semibold text-primary underline-offset-4 hover:underline"
-          >
-            Sign up
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
-  );
+  // STEP 2: Properly use the hook and its return values
+  const { isLoading } = useRedirectIfAuth();
+
+  // STEP 3: Handle the loading state
+  // This prevents the login form from flashing on the screen for a user
+  // who is about to be redirected.
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner className="h-10 w-10 text-primary" />
+      </div>
+    );
+  }
+
+  // The rest of your component, which will now only render when auth state is confirmed
+  return <LoginForm />;
 }
