@@ -47,3 +47,5 @@ export function useRequireAuth() {
 export function useRedirectIfAuth() {
   return useAuth({ requireAuth: false });
 }
+
+export { useAuthContext };

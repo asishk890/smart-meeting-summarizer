@@ -1,8 +1,10 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from "tailwind-merge"
-// Utility function for combining class names (similar to clsx)
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+// Correct, single definition for the 'cn' utility function.
+// It combines class names and resolves Tailwind CSS conflicts.
 export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
+  return twMerge(clsx(inputs));
 }
 
 // Format bytes to human readable format
@@ -282,7 +284,4 @@ export function getInitials(name: string): string {
     .map(word => word.charAt(0).toUpperCase())
     .join('')
     .slice(0, 2);
-}
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
 }

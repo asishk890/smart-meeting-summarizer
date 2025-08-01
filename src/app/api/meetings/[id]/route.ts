@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserIdFromRequest } from '@/lib/auth';
+import { cookies } from 'next/headers'; // --- FIX 1: IMPORT cookies
+
+// --- FIX 2: IMPORT THE CORRECT FUNCTION ---
+// We no longer use getUserIdFromRequest. We use verifyToken.
+import { verifyToken } from '@/lib/auth';
+
 import { db } from '@/lib/mock-db';
 
 interface RouteParams {
@@ -9,12 +14,19 @@ interface RouteParams {
 // GET a single meeting by ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
    try {
-    const userId = await getUserIdFromRequest(request);
-    const meetingId = params.id;
-    if (!userId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    // --- FIX 3: IMPLEMENT THE NEW AUTHENTICATION FLOW ---
+    const token = (await cookies()).get('session_token')?.value;
+    if (!token) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
+    const decodedToken = await verifyToken(token);
+    if (!decodedToken) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = decodedToken.userId;
+    // --- END OF AUTH FIX ---
 
+    const meetingId = params.id;
     const meeting = await db.meeting.findById(meetingId);
 
     // Security check: ensure the meeting belongs to the user
@@ -32,12 +44,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 // DELETE a meeting
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const userId = await getUserIdFromRequest(request);
-    const meetingId = params.id;
-    if (!userId) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    // --- FIX 4: IMPLEMENT THE NEW AUTHENTICATION FLOW HERE AS WELL ---
+    const token = (await cookies()).get('session_token')?.value;
+    if (!token) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-    
+    const decodedToken = await verifyToken(token);
+    if (!decodedToken) {
+        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    const userId = decodedToken.userId;
+    // --- END OF AUTH FIX ---
+
+    const meetingId = params.id;
     const meeting = await db.meeting.findById(meetingId);
     
     if (!meeting || meeting.userId !== userId) {

@@ -1,31 +1,4 @@
-export interface Meeting {
-  id: string;
-  title: string;
-  description?: string;
-  userId: string;
-  audioFile?: string;
-  transcript?: string;
-  summary?: MeetingSummary;
-  status: 'uploading' | 'processing' | 'completed' | 'failed';
-  createdAt: string;
-  updatedAt: string;
-  duration?: number; // in seconds
-  fileSize?: number; // in bytes
-  fileName?: string;
-}
-
-export interface MeetingSummary {
-  keyPoints: string[];
-  actionItems: ActionItem[];
-  participants: string[];
-  sentiment: 'positive' | 'neutral' | 'negative';
-  topics: string[];
-  decisions: string[];
-  nextSteps: string[];
-  fullSummary: string;
-  confidence: number; // 0-1 score
-}
-
+// Define the structure of an ActionItem
 export interface ActionItem {
   id: string;
   task: string;
@@ -35,46 +8,28 @@ export interface ActionItem {
   status: 'pending' | 'in-progress' | 'completed';
 }
 
-export interface MeetingUpload {
+// Define the structure for a full Meeting record
+export interface Meeting {
+  id: string;
+  userId: string;
   title: string;
-  description?: string;
-  audioFile: File;
+  fileName: string;
+  transcription: string;
+  summary: string;
+  // --- CHANGE THIS LINE ---
+  actionItems: ActionItem[]; // Changed from string[] to ActionItem[]
+  createdAt: string; // ISO Date String
 }
 
-export interface TranscriptionRequest {
-  audioFile: File;
-  language?: string;
-}
-
-export interface SummarizationRequest {
-  transcript: string;
-  meetingTitle?: string;
-  additionalContext?: string;
-}
-
-export interface AIProcessingResponse {
-  success: boolean;
-  data?: {
-    transcript?: string;
-    summary?: MeetingSummary;
-  };
-  error?: string;
-  processingTime?: number;
-}
-
-export interface MeetingFilters {
-  status?: Meeting['status'];
-  dateRange?: {
-    start: string;
-    end: string;
-  };
-  searchTerm?: string;
-}
-
-export interface MeetingsResponse {
-  meetings: Meeting[];
-  total: number;
-  page: number;
-  limit: number;
-  hasMore: boolean;
+// You might also have a summary type like this
+export interface MeetingSummary {
+    keyPoints: string[];
+    actionItems: ActionItem[];
+    participants: string[];
+    sentiment: 'positive' | 'neutral' | 'negative';
+    topics: string[];
+    decisions: string[];
+    nextSteps: string[];
+    fullSummary: string;
+    confidence: number;
 }

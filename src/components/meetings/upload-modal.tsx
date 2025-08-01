@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { Card } from '../ui/card';
+import { api } from '@/lib/api';
 
 interface UploadModalProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,21 +47,24 @@ export function UploadModal({ onUploadSuccess, onClose }: UploadModalProps) {
     formData.append('title', title);
 
     try {
-      const response = await fetch('/api/meetings', {
-        method: 'POST',
-        body: formData,
-      });
+      // --- THIS IS THE FIX ---
 
-      const result = await response.json();
+      // 1. We still make the request with our 'api' client.
+      const response = await api.post('/meetings', formData);
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Upload failed.');
-      }
-      onUploadSuccess(result);
+      // 2. The `try` block will ONLY continue if the request was successful (HTTP status 200).
+      //    We can directly access the JSON result from `response.data`.
+      onUploadSuccess(response.data);
       onClose();
+
+    // The 'err' object is now a rich AxiosError.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      setError(err.message);
+      // 3. For 4xx or 5xx errors, axios puts the server's response in `err.response`.
+      //    We can get the specific error message from our API.
+      const errorMessage = err.response?.data?.message || err.message || 'An unexpected error occurred during upload.';
+      setError(errorMessage);
+
     } finally {
       setIsUploading(false);
     }

@@ -25,7 +25,12 @@ export interface Meeting {
     fileName: string;
     transcription: string;
     summary: string;
-    actionItems: string[];
+    
+    // --- THIS IS THE FIX ---
+    // Change `string[]` to `ActionItem[]` to allow storing the rich objects.
+    actionItems: ActionItem[];
+    // ----------------------
+    
     createdAt: string;
 }
 
@@ -33,3 +38,22 @@ export interface Meeting {
 // Meeting object before it's saved to the "database".
 // It doesn't have an `id` or `createdAt` yet.
 export type UnsavedMeeting = Omit<Meeting, 'id' | 'createdAt'>;
+
+export interface ActionItem {
+  id: string;
+  task: string;
+  assignee?: string;
+  deadline?: string | null; // Use `| null` as AI might return null
+  priority: 'low' | 'medium' | 'high';
+  status: 'pending' | 'in-progress' | 'completed';
+}
+
+
+// 2. Now, define the types for your User records
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  passwordHash: string;
+  createdAt: string;
+}

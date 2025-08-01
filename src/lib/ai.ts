@@ -1,11 +1,20 @@
 import OpenAI from 'openai';
 import { MeetingSummary, ActionItem } from '@/types/meeting';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
+const apiKey = process.env.OPENAI_API_KEY;
+if (!apiKey) {
+  throw new Error("OPENAI_API_KEY is not set in environment variables.");
+}
+
+// --- THIS IS THE UPDATE ---
+// Add timeout and retry logic to handle temporary network flakes.
+const openai = new OpenAI({
+  apiKey: apiKey,
+  timeout: 30 * 1000, // 30 second timeout
+  maxRetries: 2,      // Retry a failed request up to 2 times
+});
+// Initialize OpenAI client
 export class AIService {
   // Transcribe audio using OpenAI Whisper
   static async transcribeAudio(audioFile: File, language?: string): Promise<string> {

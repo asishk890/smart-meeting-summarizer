@@ -6,6 +6,7 @@ import { createToken } from '@/lib/auth';
 import { loginSchema } from '@/lib/validations';
 import { ZodError } from 'zod';
 
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -19,7 +20,8 @@ export async function POST(request: Request) {
       console.error('Validation failed:', validation.error);
       return NextResponse.json({ message: 'Invalid input' }, { status: 400 });
     }
-    
+    // This is the single, correctly placed token creation line.
+ 
     const { email, password } = validation.data;
     
     const user = await db.user.findByEmail(email);
@@ -53,7 +55,6 @@ export async function POST(request: Request) {
         token: token,
         user: userWithoutPassword 
     });
-
   } catch (error) {
     if (error instanceof ZodError) { /* ... */ }
     console.error('CRITICAL ERROR in Login Route:', error);

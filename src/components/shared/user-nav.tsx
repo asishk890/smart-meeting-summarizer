@@ -1,49 +1,31 @@
-// src/components/shared/user-nav.tsx
 'use client'
 
-import Link from 'next/link';
-import { User, LogOut, Settings, LayoutDashboard } from 'lucide-react';
-
-import { useAuthContext } from '@/context/auth-context';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { LogOut } from "lucide-react"
+// --- THE FIX: Import the correct, high-level hook ---
+import { useRequireAuth } from "@/hooks/use-auth"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-// Import your existing User type
-import { type User as UserType } from '@/types/auth'; 
+} from "@/components/ui/dropdown-menu"
+import { getInitials } from "@/lib/utils"
 
-function getUserInitials(name?: string, email?: string): string {
-  if (name) {
-    const nameParts = name.split(' ');
-    return nameParts.map(part => part[0]).join('').toUpperCase();
-  }
-  if (email) {
-    return email.substring(0, 2).toUpperCase();
-  }
-  return 'U';
-}
+export function UserNav() {
+  // --- Use the hook that provides the clean, flattened data ---
+  // This now works perfectly because useRequireAuth returns the user property at the top level.
+  const { user, logout } = useRequireAuth();
 
-interface UserNavProps {
-  user: UserType | null;
-}
-
-export function UserNav({ user }: UserNavProps) {
-  const { logout } = useAuthContext();
-
+  // We no longer need the `if (!user) return null` check because the useRequireAuth
+  // hook guarantees that if we get this far, the user exists (or a redirect is happening).
+  // It is good practice to keep it for robustness, especially during hot-reloads.
   if (!user) {
-    return null;
-  }
-
-  const handleLogout = (event: Event) => {
-    event.preventDefault();
-    logout();
+    // You can render a small loading skeleton here for a split second during re-renders if needed
+    return <div className="h-9 w-9 rounded-full bg-muted animate-pulse" />;
   }
 
   return (
@@ -51,16 +33,10 @@ export function UserNav({ user }: UserNavProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
-            {/* 
-              --- THE FIX IS HERE ---
-              We now use user.avatar to match your User type.
-            */}
-            <AvatarImage src={user.avatar ?? ''} alt={`@${user.name}`} />
-            <AvatarFallback>{getUserInitials(user.name, user.email)}</AvatarFallback>
+            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
@@ -71,24 +47,7 @@ export function UserNav({ user }: UserNavProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuItem onSelect={handleLogout}>
+        <DropdownMenuItem onClick={logout} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>
